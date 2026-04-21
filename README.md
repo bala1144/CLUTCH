@@ -99,9 +99,9 @@ EgoVid5M_dataset/
 └── template_instructions_hand_motion.json
 ```
 
-For the released prompt-demo/checkpoint path, only the normalization file is currently
-staged inside `assets/egovid5m_release/`. The rest of the dataset-side metadata remains
-part of the separate dataset release.
+For the released prompt-demo/checkpoint path, the normalization file is provided under
+`assets/egovid5m_release/`. The rest of the dataset-side metadata remains part of the
+separate dataset release.
 
 ---
 
@@ -201,24 +201,12 @@ python test/test_m2t.py --test_t2m_model /path/to/checkpoints/llm_instruct.ckpt 
 
 | Model | Description | Download |
 |---|---|---|
-| `vqvae_traj.ckpt` | Trajectory VQVAE (Stage 1a) | [link pending] |
-| `vqvae_hp.ckpt` | Hand-pose VQVAE (Stage 1b) | [link pending] |
-| `llm_pretrain.ckpt` | LLM pretrained (Stage 2) | [link pending] |
-| `llm_align.ckpt` | LLM after alignment (Stage 3) | [link pending] |
-| `llm_instruct.ckpt` | LLM after instruction tuning (Stage 4) | [link pending] |
-| `tm2t_evaluator.ckpt` | TM2T evaluation model | [link pending] |
-
----
-
-## Release Notes
-
-- The configs in `configs/` are kept as training templates and still use placeholder paths.
-- The repo-local release status is tracked in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
-- The current release asset bundle includes only the normalization file kept for prompt
-  inference. Other dataset-derived training/evaluation files are expected from the
-  separate dataset release.
-- The current prompt-demo path writes `.npy` and `.obj` reliably. Video rendering still depends
-  on a host with a working OpenGL backend for `pyrender`.
+| `vqvae_traj.ckpt` | Trajectory VQVAE (Stage 1a) | TBA |
+| `vqvae_hp.ckpt` | Hand-pose VQVAE (Stage 1b) | TBA |
+| `llm_pretrain.ckpt` | LLM pretrained (Stage 2) | TBA |
+| `llm_align.ckpt` | LLM after alignment (Stage 3) | TBA |
+| `llm_instruct.ckpt` | LLM after instruction tuning (Stage 4) | TBA |
+| `tm2t_evaluator.ckpt` | TM2T evaluation model | TBA |
 
 ---
 
@@ -230,7 +218,6 @@ CLUTCH/
 ├── extract_codes.py           # Extract motion tokens (between Stage 1 and 2)
 ├── release_checkpoints/       # Staged VQ-VAE and LLM checkpoints
 ├── environment.yml            # Conda environment
-├── RELEASE_CHECKLIST.md       # Remaining release blockers
 ├── configs/
 │   ├── stage1a_vqvae_traj.yaml     # Stage 1a: Trajectory VQVAE
 │   ├── stage1b_vqvae_hp.yaml       # Stage 1b: Hand-pose VQVAE
@@ -248,7 +235,7 @@ CLUTCH/
 │   ├── losses/                # Loss functions
 │   ├── metrics/               # Evaluation metrics
 │   └── utils/                 # Utilities (logging, checkpointing)
-└── assets/                    # Runtime assets and release-local EgoVid5M metadata
+└── assets/                    # Runtime assets
 ```
 
 ---
