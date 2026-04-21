@@ -1,0 +1,118 @@
+NAME: USE_FILE_NAME
+ACCELERATOR: gpu
+NUM_NODES: 1
+DEVICE: [0]
+FOLDER: outputs/train
+
+TRAIN:
+  STAGE: vae
+  NUM_WORKERS: 40
+  BATCH_SIZE: 512
+  END_EPOCH: 2000
+  RESUME: ""
+  PRETRAINED: ""
+  vis_interval: 50
+  OPTIM:
+    target: AdamW
+    params:
+      lr: 2e-4
+      betas: [0.9, 0.99]
+      weight_decay: 0.0
+
+EVAL:
+  BATCH_SIZE: 512
+  SPLIT: test
+
+TEST:
+  SPLIT: test
+  BATCH_SIZE: 512
+  FOLDER: outputs/eval
+
+DATASET:
+  target: mGPT.data.Egovid5M.DataModule
+  dataset: egovid5M_1000
+  dataset_dir: /path/to/EgoVid5M_dataset
+  index_file: _aux_exp/text_processing_valid_index_nset_72_tr0_013_rot0_2/split_dict_tr0_8_val0_1_test0_1.json
+  dict_file_to_load: mano_smoothened_w_gaus_tr_sig2_rotated_180.npy
+  annotation_file_to_load: naive_claude_summary.json
+  norm_dict_file_to_load: _aux_exp/text_processing_valid_index_nset_72_tr0_013_rot0_2/mean_std_w_s20.npy
+  egovid5M_to_load: True
+  GRAB_to_load: True
+  GRAB_aug_to_load: False
+  seqs_split:
+    train: [0, 25837]
+    val: [0, 3099]
+    test: [0, 2286]
+  batch_size: 128
+  shift_pos_to_origin: True
+  max_frames: 144
+  sampling_type: uniform_sampling
+  down_sample_factor: 2
+  down_sample: True
+  fps: 15
+  Grab_cfg:
+    dataset_dir: /path/to/GRAB_dataset
+    seqs_split:
+      train: [0, 780]
+      val: [0, 156]
+      test: [0, 114]
+  Grab_aug_cfg:
+    dataset_dir: /path/to/GRAB_aug_dataset
+    seqs_split:
+      train: [0, 6000]
+      val: [0, 1]
+      test: [0, 1]
+
+METRIC:
+  TYPE: ["Egovid5M_Metrics"]
+
+LOSS:
+  LAMBDA_FEATURE: 1.0
+  LAMBDA_VELOCITY: 1.0
+  LAMBDA_JOINT_RECON: 0.0
+  LAMBDA_3D_RECON: 0.0
+  LAMBDA_COMMIT: 0.25
+  LAMBDA_PATCH_RECON: 0.0
+  LAMBDA_CLS: 0.0
+  ABLATION:
+    RECONS_LOSS: l1_smooth
+
+model:
+  target: mGPT.models.mgpt_GRAB.MotionGPT
+  params:
+    condition: text
+    task: t2m
+    lm:
+      target: mGPT.archs.mgpt_lm.MLM
+      params:
+        model_type: t5
+        model_path: google/flan-t5-small
+        stage: ${TRAIN.STAGE}
+        motion_codebook_size: ${model.params.codebook_size}
+        ablation: ${ABLATION}
+    motion_vae:
+      target: mGPT.archs.mgpt_vq_single_hand_disent_part_train.VQVae
+      params:
+        quantizer: ema_reset
+        code_num: 4096
+        code_dim: 64
+        output_emb_width: 64
+        down_t: 2
+        stride_t: 2
+        width: 512
+        depth: 3
+        dilation_growth_rate: 3
+        norm: null
+        activation: relu
+        nfeats: ${DATASET.NFEATS}
+        ablation: ${ABLATION}
+        train_model: ["trajectory"]
+
+LOGGER:
+  TYPE: ["wandb"]
+  CHECKPOINT: ["save_every_n", "metric_checkpoint"]
+  VAL_EVERY_STEPS: 50
+  SaveSpecificEpochsCallback: [25, 500, 1000, 2500, 5000, 7500]
+  WANDB:
+    params:
+      project: CLUTCH

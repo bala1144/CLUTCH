@@ -1,0 +1,15 @@
+CONFIG_FOLDER: configs
+FOLDER: outputs
+
+TEST:
+  FOLDER: outputs/eval
+
+DATASET:
+  TASK_ROOT: deps/mGPT_instructions
+  SMPL_PATH: deps/smpl
+  TRANSFORM_PATH: deps/transforms/
+  WORD_VERTILIZER_PATH: deps/glove/
+
+METRIC:
+  TM2T:
+    t2m_path: deps/t2m/ # path for tm2t evaluator

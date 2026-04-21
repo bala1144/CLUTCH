@@ -1,0 +1,190 @@
+NAME: USE_FILE_NAME # Experiment names
+ACCELERATOR: 'gpu' # Devices optioncal: “cpu”, “gpu”, “tpu”, “ipu”, “hpu”, “mps, “auto”
+NUM_NODES: 1 # Number of GPU nodes for distributed training
+DEVICE: [0, 1, 2, 3, 4, 5, 6, 7] # Index of gpus eg. [0] or [0,1,2,3]
+# DEVICE: [0] # Index of gpus eg. [0] or [0,1,2,3]
+FOLDER: /path/to/output_dir 
+
+################
+TRAIN:
+  #---------------------------------
+  STAGE: vae # stage "vae" , "lm_pretrain", "lm_instruct"
+  #---------------------------------
+  NUM_WORKERS: 56 # Number of workers
+  BATCH_SIZE: 8 # Size of batches
+  END_EPOCH: 300 # End epoch
+  RESUME: '' # Resume training from this path
+  PRETRAINED: '' # Preatrained model path
+  PRETRAINED_VAE:
+    traj_model: /path/to/checkpoints/vqvae_traj.ckpt
+    hp_model: /path/to/checkpoints/vqvae_hp.ckpt
+  vis_interval: 10
+  # END_EPOCH: 1_000 # End epoch
+  # RESUME: '' # Resume training from this path
+  # PRETRAINED: '' # Preatrained model path
+  # vis_interval: 10
+
+  OPTIM:
+    target: AdamW
+    params:
+      lr: 2e-4
+      betas: [0.9, 0.99]
+      weight_decay: 0.0
+
+# Evaluating Configuration
+EVAL:
+  BATCH_SIZE: 1 # Evaluating Batch size
+  SPLIT: val
+  DatasetEval: "Text2MotionDatasetCB"
+
+TEST:
+  # CHECKPOINTS: checkpoints/MotionGPT-base/motiongpt_s3_h3d.tar 
+  SPLIT: test
+  BATCH_SIZE: 1 # training Batch size
+  FOLDER: /path/to/output_dir
+
+
+################## data_cfg: ##################
+DATASET:
+  target: mGPT.data.Egovid5M.DataModule
+  CODE_PATH: "tokens/20_07_egv5Mv2_stage2_decomp_mixed_t5s_both_ann_eq_traj999_hp999_down02/npy"
+  # params:
+  ### dataset config
+  dataset: "egovid5M_1000"
+  dataset_dir: "/path/to/EgoVid5M_dataset"  
+  index_file:  "_aux_exp/text_processing_valid_index_nset_72_tr0_013_rot0_2/split_dict_tr0_8_val0_1_test0_1.json"
+  dict_file_to_load: "mano_smoothened_w_gaus_tr_sig2_rotated_180.npy"
+  # annotation_file_to_load: ["vila_cpot_cls_summ.json", "naive_claude_summary.json"]
+  # ann_sample_probs: [0.5, 0.5] # should sum to 1.0
+  annotation_file_to_load: "naive_claude_summary.json"
+  # ann_sample_probs: [0.5, 0.5] # should sum to 1.0
+  norm_dict_file_to_load: "_aux_exp/text_processing_valid_index_nset_72_tr0_013_rot0_2/mean_std_w_s20.npy"
+  pretrain_template_file: "template_pretrain_w_hand_2_hand_w_text.json"
+  tasks_to_load:
+    - "Text-to-Motion"
+    - "Motion-to-Text"
+  #####
+  #### specifiying to load
+  egovid5M_to_load: True
+  GRAB_to_load: True
+  GRAB_aug_to_load: False
+  #### total samples 27368
+  seqs_split: # could be range or list of indexes
+    train: [0, 25837]
+    val:   [0, 3099]
+    test:  [0, 2286]
+  #####
+  batch_size: 128
+  shift_pos_to_origin: True
+  max_frames: 144 # should be a multiple of the compression factor
+  sampling_type: "uniform_sampling" # max_sampling, max_sampling
+  down_sample_factor: 2
+  down_sample: True
+  fps: 15
+  ####
+  Grab_cfg:
+    dataset_dir: "/path/to/GRAB_dataset"
+    seqs_split: # could be range or list of indexes
+      train:  [0, 780]
+      val:    [0, 156]
+      test:   [0, 114]
+  ####
+  Grab_aug_cfg:
+    dataset_dir: "/path/to/GRAB_aug_dataset"
+    seqs_split: # could be range or list of indexes
+      train:  [0, 6000]
+      val:    [0, 1]
+      test:   [0, 1]
+
+
+METRIC:
+  TYPE: ['Egovid5M_Metrics', 'Egovid5M_M2TMetrics']
+ 
+LOSS:
+  LAMBDA_FEATURE: 1.0
+  LAMBDA_VELOCITY: 0.0
+  LAMBDA_COMMIT: 0.02
+  LAMBDA_CLS: 1.0
+  ABLATION:
+    RECONS_LOSS: 'l1_smooth'
+
+model:
+  #############
+  # target: mGPT.models.mgpt.MotionGPT
+  target: mGPT.models.mgpt_GRAB.MotionGPT
+  # target: mGPT.models.mgpt_GRAB_pretrain_task.MotionGPT
+  params:
+    condition: 'text'
+    task: 't2m'
+    ################
+    #### lm model
+    lm:
+      target: mGPT.archs.mgpt_lm_custom_tasks.MLM
+      params:
+        model_type: t5
+        model_path: google/flan-t5-small
+        # fine_tune_last_n_layers: 4
+        stage: ${TRAIN.STAGE}
+        motion_codebook_size: ${model.params.codebook_size}
+        ablation: ${ABLATION}
+        predict_ratio: 0.2 # defines the percentage of frames predicted during the motion prediction training in pretrain
+        framerate: ${DATASET.fps} # 12
+        # supervision_type: "mixed" # does both supervision and self-supervision
+        supervision_type: "mixed" # does both supervision and self-supervision
+        max_length: 100
+        vqvae_type: "single_hand_decomp"
+    ################
+    #### motion vae
+    # motion_vae: 
+    #   target: mGPT.archs.mgpt_vq_single_hand.VQVae
+    #   params:
+    #     quantizer: 'ema_reset'
+    #     code_num: 4096
+    #     # code_num: 32
+    #     code_dim: 64
+    #     output_emb_width: 64
+    #     down_t: 2
+    #     stride_t: 2
+    #     width: 512
+    #     depth: 3
+    #     dilation_growth_rate: 3
+    #     norm: None
+    #     activation: 'relu'
+    #     nfeats: ${DATASET.NFEATS}
+    #     ablation: ${ABLATION}
+    #     # train_model: ["trajectory", "hand_pose", "transl"]
+    #     train_model: ["trajectory", "hand_pose"]
+    ###### motion vae
+    # /path/to/output_dir/mgpt_GRAB/20_07_egv5Mv2_30K_bs512_cm_25_stage1_cb4K_d064_decomp_hp_down02/input_train_config.yaml
+    motion_vae: 
+      target: mGPT.archs.mgpt_vq_sh_disent_part_train_wrapper_v2.VQVae_wrapper
+      params:
+        quantizer: 'ema_reset'
+        code_num: 8192 # 2*4096
+        code_dim: 64
+        output_emb_width: 64
+        down_t: 2
+        stride_t: 2
+        width: 512
+        depth: 3
+        dilation_growth_rate: 3
+        norm: None
+        activation: 'relu'
+        nfeats: ${DATASET.NFEATS}
+        ablation: ${ABLATION}
+        train_model: ["trajectory", "hand_pose"]
+
+
+#############
+LOGGER:
+  # TYPE: ['tensorboard']
+  TYPE: ['wandb']
+  CHECKPOINT: ["save_every_n", "metric_checkpoint"] # "save_last_n"
+  VAL_EVERY_STEPS: 10  # efffective : check_val_every_n_epoch * VAL_EVERY_STEPS
+  SaveSpecificEpochsCallback: [250, 500, 1_000, 2_500, 5_000, 7_500]
+  WANDB:
+    params:
+      project: HOIGPT
+
+
+##################  data: ##################

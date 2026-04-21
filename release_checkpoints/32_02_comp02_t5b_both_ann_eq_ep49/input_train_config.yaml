@@ -1,0 +1,136 @@
+NAME: USE_FILE_NAME
+ACCELERATOR: gpu
+NUM_NODES: 1
+DEVICE: [0]
+FOLDER: outputs/release_train
+
+TRAIN:
+  STAGE: lm_instruct
+  NUM_WORKERS: 16
+  BATCH_SIZE: 72
+  END_EPOCH: 300
+  RESUME: ""
+  PRETRAINED: ""
+  PRETRAINED_VAE:
+    traj_model: release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_vel1_stage1_cb4K_d064_decomp_traj_down02/checkpoints/epoch=999.ckpt
+    hp_model: release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_stage1_cb4K_d064_decomp_hp_down02/checkpoints/epoch=999.ckpt
+  vis_interval: 25
+  OPTIM:
+    target: AdamW
+    params:
+      lr: 2e-4
+      betas: [0.9, 0.99]
+      weight_decay: 0.0
+
+EVAL:
+  BATCH_SIZE: 8
+  SPLIT: test
+  DatasetEval: Text2MotionDatasetCB
+
+TEST:
+  SPLIT: test
+  BATCH_SIZE: 8
+  FOLDER: outputs/release_eval
+
+DATASET:
+  target: mGPT.data.Egovid5M.DataModule
+  CODE_PATH: tokens/20_07_egv5Mv2_stage2_decomp_mixed_t5s_both_ann_eq_traj999_hp999_down02/npy
+  dataset: egovid5M_30K
+  dataset_dir: assets/egovid5m_release
+  index_file: ""
+  dict_file_to_load: ""
+  annotation_file_to_load: []
+  ann_sample_probs: [1.0]
+  norm_dict_file_to_load: _aux_exp/text_processing_valid_index_nset_72_tr0_013_rot0_2/mean_std_w_s20.npy
+  pretrain_template_file: ""
+  instructions_template_file: ""
+  tasks_to_load:
+    - Text-to-Motion
+    - Motion-to-Text
+  egovid5M_to_load: False
+  GRAB_to_load: False
+  GRAB_aug_to_load: False
+  seqs_split:
+    train: [0, 25837]
+    val: [0, 3099]
+    test: [0, 2286]
+  batch_size: 128
+  shift_pos_to_origin: True
+  max_frames: 144
+  sampling_type: uniform_sampling
+  down_sample_factor: 2
+  down_sample: True
+  fps: 15
+  Grab_cfg:
+    dataset_dir: /path/to/GRAB_dataset
+    seqs_split:
+      train: [0, 4]
+      val: [0, 4]
+      test: [0, 4]
+  Grab_aug_cfg:
+    dataset_dir: /path/to/GRAB_aug_dataset
+    seqs_split:
+      train: [0, 6000]
+      val: [0, 1]
+      test: [0, 1]
+  preprocessed_cache_file: ""
+  preprocessed_cache_version: 1
+  use_preprocessed_cache: False
+  dump_preprocessed_cache: False
+  regenerate_preprocessed_cache: False
+
+METRIC:
+  TYPE: ["Egovid5M_Metrics", "Egovid5M_M2TMetrics", "Egovid5M_TM2TMetrics_m2m"]
+
+LOSS:
+  LAMBDA_FEATURE: 1.0
+  LAMBDA_VELOCITY: 0.0
+  LAMBDA_COMMIT: 0.0
+  LAMBDA_CLS: 1.0
+  ABLATION:
+    RECONS_LOSS: l1_smooth
+
+model:
+  target: mGPT.models.mgpt_GRAB_instruct_train.MotionGPT
+  params:
+    condition: text
+    task: t2m
+    lm:
+      target: mGPT.archs.mgpt_lm_custom_tasks.MLM
+      params:
+        model_type: t5
+        model_path: google/flan-t5-base
+        stage: ${TRAIN.STAGE}
+        motion_codebook_size: ${model.params.codebook_size}
+        ablation: ${ABLATION}
+        predict_ratio: 0.2
+        framerate: ${DATASET.fps}
+        supervision_type: supervised
+        max_length: 160
+        vqvae_type: single_hand_decomp
+    motion_vae:
+      target: mGPT.archs.mgpt_vq_sh_disent_part_train_wrapper_v2.VQVae_wrapper
+      params:
+        quantizer: ema_reset
+        code_num: 8192
+        code_dim: 64
+        output_emb_width: 64
+        down_t: 2
+        stride_t: 2
+        width: 512
+        depth: 3
+        dilation_growth_rate: 3
+        norm: null
+        activation: relu
+        nfeats: ${DATASET.NFEATS}
+        ablation: ${ABLATION}
+        train_model: ["trajectory", "hand_pose"]
+
+LOGGER:
+  TYPE: ["wandb"]
+  CHECKPOINT: ["save_every_n", "metric_checkpoint"]
+  VAL_EVERY_STEPS: 25
+  SaveSpecificEpochsCallback: [250, 500, 1000, 2500, 5000, 7500]
+  WANDB:
+    params:
+      project: CLUTCH

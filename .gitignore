@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Data and checkpoints
+checkpoints/
+deps/*
+!deps/README.md
+assets/*
+!assets/.gitkeep
+!assets/README.md
+*.ckpt
+*.pt
+*.pth
+*.npy
+*.npz
+*.hd5
+*.hdf5
+
+RELEASE_CHECKLIST.md
+# Release staging payloads
+release_checkpoints/**/checkpoints/
+release_checkpoints/**/*.ckpt
+release_checkpoints/**/npy/
+release_checkpoints/**/obj/
+release_checkpoints/**/visualizations/
+release_checkpoints/**/config_*.yaml
+release_checkpoints/**/log_*.log
+release_models/
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Experiment outputs
+wandb/
+runs/
+logs/
+
+# Tokens / cached datasets
+tokens/
+*/_cached_dataset/
+
+# Environment
+.env
+*.sif
+
+# OS
+.DS_Store

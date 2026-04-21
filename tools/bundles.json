@@ -1,0 +1,26 @@
+{
+  "assets": {
+    "archive_name": "clutch-assets.zip",
+    "target_dir": "assets",
+    "paths": [
+      "Mano_doublex_face.npy",
+      "Mano_doublex_faces_water_tight.npy",
+      "mano_v1_2",
+      "egovid5m_release"
+    ],
+    "url": ""
+  },
+  "checkpoints": {
+    "archive_name": "clutch-checkpoints.zip",
+    "target_dir": "release_checkpoints",
+    "paths": [
+      "release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_vel1_stage1_cb4K_d064_decomp_traj_down02/checkpoints/epoch=999.ckpt",
+      "release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_vel1_stage1_cb4K_d064_decomp_traj_down02/input_train_config.yaml",
+      "release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_stage1_cb4K_d064_decomp_hp_down02/checkpoints/epoch=999.ckpt",
+      "release_checkpoints/20_07_egv5Mv2_30K_bs512_cm_25_stage1_cb4K_d064_decomp_hp_down02/input_train_config.yaml",
+      "release_checkpoints/32_02_comp02_t5b_both_ann_eq_ep49/checkpoints/epoch=249.ckpt",
+      "release_checkpoints/32_02_comp02_t5b_both_ann_eq_ep49/input_train_config.yaml"
+    ],
+    "url": ""
+  }
+}
