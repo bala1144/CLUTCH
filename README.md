@@ -9,7 +9,7 @@ ICLR 2026
 
 ## Overview
 
-CLUTCH is a unified language-model framework for bimanual hand-object interaction generation. It supports:
+CLUTCH is a unified language-model framework for text conditioned hand motion modelling in the wild. It supports:
 - **Text-to-Motion (T2M)**: Generate hand motion from text descriptions
 - **Motion-to-Text (M2T)**: Describe hand motion in natural language
 
@@ -103,17 +103,12 @@ For the released prompt-demo/checkpoint path, the normalization file is provided
 `assets/egovid5m_release/`. The rest of the dataset-side metadata remains part of the
 separate dataset release.
 
----
-
-### GRAB (optional)
-
-Set `DATASET.Grab_cfg.dataset_dir` in configs to `/path/to/GRAB_dataset`.
 
 ---
 
 ## Training
 
-Training follows **4 sequential stages**. Update `FOLDER` (output dir) and `DATASET.dataset_dir` in each config before running.
+Training follows **3 sequential stages**. Update `FOLDER` (output dir) and `DATASET.dataset_dir` in each config before running.
 
 ### Stage 1a — VQVAE Trajectory
 
