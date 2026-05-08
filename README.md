@@ -63,7 +63,7 @@ CLUTCH resolves runtime assets from `./assets` by default.
 Install the uploaded asset bundle:
 
 ```bash
-./download_assets.sh --url <clutch-assets-zip-url>
+./download_assets.sh --url "https://keeper.mpdl.mpg.de/seafhttp/f/0f018693ac734bd0938a/?op=view"
 ```
 
 For local testing before upload:
@@ -196,11 +196,8 @@ python test/test_m2t.py --test_t2m_model /path/to/checkpoints/llm_instruct.ckpt 
 
 | Model | Description | Download |
 |---|---|---|
-| `vqvae_traj.ckpt` | Trajectory VQVAE (Stage 1a) | TBA |
-| `vqvae_hp.ckpt` | Hand-pose VQVAE (Stage 1b) | TBA |
-| `llm_pretrain.ckpt` | LLM pretrained (Stage 2) | TBA |
-| `llm_align.ckpt` | LLM after alignment (Stage 3) | TBA |
-| `llm_instruct.ckpt` | LLM after instruction tuning (Stage 4) | TBA |
+| `clutch-assets.zip` | Runtime assets bundle | [Download](https://keeper.mpdl.mpg.de/seafhttp/f/0f018693ac734bd0938a/?op=view) |
+| `clutch-checkpoints.zip` | Released VQ-VAE and LLM checkpoints | [Download](https://keeper.mpdl.mpg.de/seafhttp/f/749f70f09c864a09bbc2/?op=view) |
 | `tm2t_evaluator.ckpt` | TM2T evaluation model | TBA |
 
 ---
